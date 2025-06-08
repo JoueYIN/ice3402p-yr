@@ -15,9 +15,15 @@ class ID:
         self._bytes = peer_id_bytes
 
     @property
+#    def xor_id(self) -> int:
+#        if not self._xor_id:
+#            self._xor_id = int(sha256_digest(self._bytes).hex(), 16)
+#        return self._xor_id
+    
     def xor_id(self) -> int:
         if not self._xor_id:
-            self._xor_id = int(sha256_digest(self._bytes).hex(), 16)
+            # Kademlia 直接使用原始 ID 的 XOR
+            self._xor_id = int.from_bytes(self._bytes, byteorder="big")
         return self._xor_id
 
     def xor_distance(self, other: "ID") -> int:
