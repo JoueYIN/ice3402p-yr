@@ -1,7 +1,7 @@
 import pytest
-from id import PeerID, sha256_digest
 import base58
 import hashlib
+from id import PeerID, sha256_digest
 
 
 def test_sha256_digest():
@@ -77,7 +77,7 @@ def test_multihash_creation():
     pubkey = b"test_public_key_bytes"
     peer_id = PeerID.from_pubkey(pubkey)
 
-    # Verify multihash structure: should start with 0x12 (SHA256) and 0x20 (32 bytes)
+    # Verify multihash structure
     multihash = peer_id.multihash
     assert multihash[0] == 0x12  # SHA256 hash type
     assert multihash[1] == 0x20  # 32 bytes length
