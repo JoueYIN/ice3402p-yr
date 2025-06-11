@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Set, Optional, List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 import time
 
 from file.file_id import FileID
@@ -19,7 +19,7 @@ class FileInfo:
     """
 
     file_id: FileID
-    peers: Set["PeerInfo"] = field(default_factory=set)
+    peers: List["PeerInfo"] = field(default_factory=list)
     name: Optional[str] = None
     size: Optional[int] = None
     created_at: float = field(default_factory=time.time)
@@ -27,12 +27,13 @@ class FileInfo:
 
     def add_peer(self, peer_info: "PeerInfo") -> None:
         """Add a BitTorrent peer that has this file."""
-        self.peers.add(peer_info)
+        if not self.has_peer(peer_info):
+            self.peers.append(peer_info)
         self.last_updated = time.time()
 
     def remove_peer(self, peer_info: "PeerInfo") -> None:
         """Remove a BitTorrent peer from the file's peer set."""
-        self.peers.discard(peer_info)
+        self.peers = [p for p in self.peers if p != peer_info]
         self.last_updated = time.time()
 
     def get_peers(self) -> List["PeerInfo"]:
@@ -49,8 +50,9 @@ class FileInfo:
         return len(self.peers)
 
     @property
-    def is_stale(self, timeout: int = 3600) -> bool:
+    def is_stale(self) -> bool:
         """Check if file info is stale (not updated for specified timeout)."""
+        timeout = 3600  # Default 1 hour timeout
         return time.time() - self.last_updated > timeout
 
     def __repr__(self) -> str:

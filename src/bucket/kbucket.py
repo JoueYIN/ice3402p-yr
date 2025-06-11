@@ -268,3 +268,9 @@ class RoutingTable:
             bucket_index = self._get_bucket_index(node_id)
             bucket = self.buckets[bucket_index]
             bucket.mark_node_failed(node_id)
+
+    def handle_node_timeout_sync(self, node_id: NodeID) -> None:
+        """Synchronous version of handle_node_timeout for simulation."""
+        bucket_index = self._get_bucket_index(node_id)
+        bucket = self.buckets[bucket_index]
+        bucket.mark_node_failed(node_id)

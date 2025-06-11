@@ -11,7 +11,7 @@ def sample_node_info():
     def _make(index):
         node_id = NodeID(index.to_bytes(20, byteorder="big"))
         address = NetworkAddress(f"192.168.0.{index}", 6881 + index, protocol="udp")
-        return NodeInfo(node_id=node_id, address=address)
+        return NodeInfo(node_id=node_id, address=address)  # type: ignore
 
     return _make
 

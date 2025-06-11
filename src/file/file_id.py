@@ -1,3 +1,4 @@
+import os
 import hashlib
 import secrets
 from typing import Union, BinaryIO
@@ -6,7 +7,7 @@ from dataclasses import dataclass
 from id import ID
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass
 class FileID(ID):
     """
     160-bit File ID (InfoHash) for Mainline DHT protocol.
@@ -15,30 +16,38 @@ class FileID(ID):
     hash of file content used to locate file providers in the DHT network.
     """
 
-    def __init__(self, file_id: Union[bytes, int, str, None] = None) -> None:
-        if file_id is None:
-            # Generate random 160-bit file ID for testing purposes
-            file_bytes = secrets.token_bytes(20)
-        elif isinstance(file_id, bytes):
-            if len(file_id) != 20:
-                raise ValueError("File ID must be exactly 20 bytes (160 bits)")
-            file_bytes = file_id
-        elif isinstance(file_id, int):
-            if file_id < 0 or file_id >= (1 << 160):
-                raise ValueError("File ID must be a 160-bit unsigned integer")
-            file_bytes = file_id.to_bytes(20, byteorder="big")
-        elif isinstance(file_id, str):
-            # Treat string as hex representation
-            try:
-                file_bytes = bytes.fromhex(file_id)
-                if len(file_bytes) != 20:
-                    raise ValueError("Hex string must represent exactly 20 bytes")
-            except ValueError as e:
-                raise ValueError(f"Invalid hex string for FileID: {file_id}") from e
-        else:
-            raise TypeError("File ID must be bytes, int, hex string, or None")
+    def __init__(self, id_input: Union[bytes, int, str, None] = None) -> None:
+        """Initialize FileID with various input types.
 
-        super().__init__(file_bytes)
+        Args:
+            id_input: Can be bytes, int, hex string, or None for random generation
+        """
+        if id_input is None:
+            # Generate random 20-byte ID
+            id_bytes = os.urandom(20)
+        elif isinstance(id_input, bytes):
+            if len(id_input) != 20:
+                raise ValueError("FileID must be exactly 20 bytes")
+            id_bytes = id_input
+        elif isinstance(id_input, int):
+            if id_input < 0 or id_input >= (1 << 160):
+                raise ValueError("FileID must be a valid 160-bit unsigned integer")
+            id_bytes = id_input.to_bytes(20, byteorder="big")
+        elif isinstance(id_input, str):
+            if len(id_input) != 40:
+                raise ValueError("Invalid hex string: must be exactly 40 characters")
+            try:
+                id_bytes = bytes.fromhex(id_input)
+            except ValueError:
+                raise ValueError("Invalid hex string")
+        else:
+            raise TypeError("FileID must be bytes, int, hex string, or None")
+
+        super(FileID, self).__init__(id_bytes)
+
+    def __bytes__(self) -> bytes:
+        """Convert FileID to bytes."""
+        return bytes(self._bytes)
 
     def to_hex(self) -> str:
         """Get the file ID as a hex string."""
@@ -69,8 +78,6 @@ class FileID(ID):
     @classmethod
     def from_hex(cls, hex_str: str) -> "FileID":
         """Create FileID from hex string."""
-        if not cls.is_valid_hex(hex_str):
-            raise ValueError(f"Invalid hex string for FileID: {hex_str}")
         return cls(hex_str)
 
     @classmethod
@@ -113,7 +120,7 @@ class FileID(ID):
     @classmethod
     def generate_random(cls) -> "FileID":
         """Generate a random FileID for testing purposes."""
-        return cls()
+        return cls(secrets.token_bytes(20))
 
     def __hash__(self) -> int:
         """Override dataclass hash to use base class implementation."""
