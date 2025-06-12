@@ -10,7 +10,7 @@ trim_trailing_whitespace = true
 [*.nix]
 indent_size = 2
 
-[*.lock]
+[*.{lock,patch}]
 insert_final_newline = unset
 trim_trailing_whitespace = unset
 indent_style = unset

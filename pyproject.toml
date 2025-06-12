@@ -9,16 +9,25 @@ description = "A simple BitTorrent network simulator using Kademlia DHT (K-bucke
 requires-python = ">=3.13"
 
 dependencies = [
+    "asyncio>=3.4.3",
     "base58>=2.1.1",
+    "ipaddress>=1.0.23",
     "multiaddr>=0.0.9",
     "multihash>=0.1.1",
+    "py-multiaddr>=0.0.3",
     "trio>=0.30.0",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/peer", "src/node"]
+packages = ["src", "src/peer", "src/node", "src/network", "src/file", "src/bucket"]
 
 [tool.pyrefly]
+python_interpreter = ".venv/bin/python3"
 project_includes = ["src"]
 project_excludes = ["**/.[!/.]*", "**/tests"]
 search_path = ["src"]
+
+[dependency-groups]
+test = [
+    "pytest>=8.4.0",
+]
