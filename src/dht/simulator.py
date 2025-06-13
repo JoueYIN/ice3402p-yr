@@ -19,6 +19,7 @@ class EventType(Enum):
     NODE_LEAVE = "NODE_LEAVE"
     FILE_PUBLISH = "FILE_PUBLISH"
     FILE_RETRIEVE = "FILE_RETRIEVE"
+    PING = "PING"
 
 
 @dataclass
@@ -235,6 +236,48 @@ class DHT_Simulator:
                     f"  Node: {node.node_id.to_hex()[:8]} at {node.host}:{node.port}"
                 )
 
+    def handle_ping_event(self, params: Dict[str, Any]) -> None:
+        """Handle explicit PING event between two nodes."""
+        source_node_id_bytes = params["sourceNodeID"]
+        target_node_id_bytes = params["targetNodeID"]
+
+        source_node_id = NodeID(bytes(source_node_id_bytes))
+        target_node_id = NodeID(bytes(target_node_id_bytes))
+
+        if source_node_id not in self.operations:
+            self.log_message(
+                f"Source node {source_node_id.to_hex()[:8]} not found for PING"
+            )
+            return
+
+        if target_node_id not in self.nodes:
+            self.log_message(
+                f"Target node {target_node_id.to_hex()[:8]} not found for PING"
+            )
+            return
+
+        self.log_message(
+            f"Node {source_node_id.to_hex()[:8]} pinging node {target_node_id.to_hex()[:8]}"
+        )
+
+        # Create PING message
+        target_node_info = NodeInfo(target_node_id, self.nodes[target_node_id].address)
+        ping_message = self.operations[source_node_id].create_ping_message(
+            target_node_info
+        )
+
+        # Deliver PING message
+        response = self.deliver_message(target_node_id, ping_message)
+
+        if response and response.message_type.value == "PING_RESPONSE":
+            self.log_message(
+                f"Node {target_node_id.to_hex()[:8]} responded to PING from {source_node_id.to_hex()[:8]}"
+            )
+        else:
+            self.log_message(
+                f"No response to PING from {source_node_id.to_hex()[:8]} to {target_node_id.to_hex()[:8]}"
+            )
+
     def run_simulation(self, events: List[Tuple[int, str, Dict[str, Any]]]) -> None:
         """Run the simulation with given events."""
         # Convert events to internal format
@@ -264,6 +307,8 @@ class DHT_Simulator:
                 self.handle_file_publish(event.params)
             elif event.event_type == EventType.FILE_RETRIEVE:
                 self.handle_file_retrieve(event.params)
+            elif event.event_type == EventType.PING:
+                self.handle_ping_event(event.params)
 
         self.log_message("Simulation completed")
 
