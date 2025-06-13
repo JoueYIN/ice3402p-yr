@@ -63,7 +63,7 @@
           # Example: https://github.com/nix-community/buildbot-nix/blob/main/nix/treefmt/flake-module.nix
           treefmt = {
             projectRootFile = "flake.nix";
-            settings.global.excludes = [ ];
+            settings.global.excludes = [ "report/**" ];
 
             programs = {
               deadnix.enable = true;
@@ -87,6 +87,7 @@
 
           # https://flake.parts/options/git-hooks-nix.html
           # Example: https://github.com/cachix/git-hooks.nix/blob/master/template/flake.nix
+          pre-commit.settings.excludes = [ "report/.*" ]; # Should be Python regex
           pre-commit.settings.hooks = {
             commitizen.enable = true;
             eclint.enable = true;
